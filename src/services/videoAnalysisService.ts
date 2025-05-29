@@ -25,8 +25,32 @@ export interface SearchResult {
 }
 
 class VideoAnalysisService {
+  private async checkServerHealth(): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Server health check failed:', error);
+      return false;
+    }
+  }
+
   private async getYouTubeTranscript(videoUrl: string): Promise<string> {
     try {
+      console.log('Checking server connection...');
+      const isServerHealthy = await this.checkServerHealth();
+      
+      if (!isServerHealthy) {
+        throw new Error('Backend server is not running. Please start the backend server on port 3001.');
+      }
+
+      console.log('Fetching transcript for:', videoUrl);
+      
       const response = await fetch(`${API_BASE_URL}/youtube-transcript`, {
         method: 'POST',
         headers: {
@@ -36,13 +60,19 @@ class VideoAnalysisService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch transcript: ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
       const data = await response.json();
       return data.transcript;
     } catch (error) {
       console.error('Failed to get YouTube transcript:', error);
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on localhost:3001');
+      }
+      
       throw error;
     }
   }
@@ -84,7 +114,8 @@ class VideoAnalysisService {
       });
 
       if (!analysisResponse.ok) {
-        throw new Error(`Analysis failed: ${analysisResponse.status}`);
+        const errorData = await analysisResponse.json().catch(() => ({ error: 'Analysis failed' }));
+        throw new Error(errorData.error || `Analysis failed with status ${analysisResponse.status}`);
       }
 
       const analysisData = await analysisResponse.json();
