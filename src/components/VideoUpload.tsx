@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,15 +23,21 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     return match ? match[1] : null;
   };
 
-  const getYouTubeTranscript = async (videoId: string): Promise<string> => {
-    // For now, we'll simulate getting a transcript
-    // In a real implementation, you'd use the YouTube Data API v3
-    return `This is a simulated transcript for video ${videoId}. The video discusses various topics including technology, innovation, and future trends. It covers multiple sections with detailed explanations and examples.`;
+  const getYouTubeTranscript = async (videoUrl: string): Promise<string> => {
+    const response = await fetch('/api/youtube-transcript', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoUrl })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to fetch transcript');
+    }
+    const data = await response.json();
+    return data.transcript;
   };
 
   const analyzeWithGemini = async (transcript: string, videoUrl: string) => {
-    const API_KEY = 'AIzaSyC0b94YHIWrqepqV2x1hAgxoeaTjTMRb2I';
-    
     const prompt = `
       Analyze this video transcript and provide a JSON response with:
       1. A comprehensive summary
@@ -54,48 +59,32 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       Video URL: ${videoUrl}
       Transcript: ${transcript}
     `;
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + API_KEY, {
+    const response = await fetch('/api/analyze-video', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcript, prompt })
     });
-
     if (!response.ok) {
-      throw new Error('Failed to analyze video with Gemini');
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to analyze video');
     }
-
     const data = await response.json();
-    const analysisText = data.candidates[0].content.parts[0].text;
-    
+    let parsed;
     try {
-      const parsed = JSON.parse(analysisText);
-      return {
-        summary: parsed.summary,
-        sections: parsed.sections || [],
-        transcript
-      };
+      parsed = JSON.parse(data.analysis);
     } catch {
-      return {
-        summary: analysisText || 'Video analysis completed',
+      parsed = {
+        summary: data.analysis || 'Video analysis completed',
         sections: [
           {
             timestamp: 0,
             title: 'Full Video',
             description: 'Complete video content'
           }
-        ],
-        transcript
+        ]
       };
     }
+    return { ...parsed, transcript };
   };
 
   const handleYouTubeUpload = async () => {
@@ -104,25 +93,18 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       return;
     }
 
-    const videoId = extractVideoId(youtubeUrl);
-    if (!videoId) {
-      toast.error('Please enter a valid YouTube URL');
-      return;
-    }
-
     setIsAnalyzing(true);
     try {
       onVideoSelected(youtubeUrl);
-      
-      // Get transcript and analyze
-      const transcript = await getYouTubeTranscript(videoId);
+      // Get transcript from backend
+      const transcript = await getYouTubeTranscript(youtubeUrl);
+      // Analyze transcript with backend
       const analysisData = await analyzeWithGemini(transcript, youtubeUrl);
       onVideoAnalyzed(analysisData);
-      
       toast.success('Video analysis completed!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Analysis error:', error);
-      toast.error('Failed to analyze video. Please try again.');
+      toast.error(error.message || 'Failed to analyze video. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
