@@ -1,73 +1,172 @@
-# Welcome to your Lovable project
 
-## Project info
+# VideoChat AI - Multimodal Video Analysis System
 
-**URL**: https://lovable.dev/projects/522bad4f-2f58-462a-87e0-f9aa6a251a88
+A sophisticated AI-powered video analysis platform that enables users to chat with videos, navigate through timestamped sections, and perform visual content searches.
 
-## How can I edit this code?
+## 🌟 Features
 
-There are several ways of editing your application.
+### 1. Chat with Video
+- Upload videos or provide YouTube URLs
+- Ask questions about video content
+- Get AI-powered responses with timestamp references
+- Natural language understanding of video context
 
-**Use Lovable**
+### 2. Timestamped Navigation  
+- Automatic section breakdown of videos
+- Clickable timestamps for easy navigation
+- Detailed descriptions for each video segment
+- Timeline-based video exploration
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/522bad4f-2f58-462a-87e0-f9aa6a251a88) and start prompting.
+### 3. Visual Content Search
+- Search for objects, scenes, or people in videos
+- Natural language queries (e.g., "red car", "person speaking")
+- Get specific timestamps where content appears
+- Confidence scoring for search results
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Technology Stack
 
-**Use your preferred IDE**
+### Frontend
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **Shadcn/ui** for components
+- **Lucide React** for icons
+- **Sonner** for notifications
+- **Tanstack Query** for state management
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend
+- **Node.js** with Express
+- **YouTube Transcript API** for transcript extraction
+- **Google Gemini AI** for video analysis
+- **CORS** for cross-origin requests
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### AI Integration
+- **Google Gemini 2.0** for multimodal video understanding
+- **YouTube Transcript API** for automatic transcript generation
+- **Natural language processing** for chat and search
 
-Follow these steps:
+## 📁 Project Structure
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```
+videochat-ai/
+├── src/
+│   ├── components/
+│   │   ├── ui/                 # Shadcn UI components
+│   │   ├── Header.tsx          # App header
+│   │   ├── VideoUpload.tsx     # Video upload interface
+│   │   ├── VideoPlayer.tsx     # Video player component
+│   │   ├── VideoSections.tsx   # Timestamped sections
+│   │   ├── ChatInterface.tsx   # Chat with video
+│   │   └── VisualSearch.tsx    # Visual content search
+│   ├── services/
+│   │   └── videoAnalysisService.ts  # AI analysis service
+│   ├── types/
+│   │   └── video.ts            # TypeScript types
+│   ├── hooks/                  # Custom React hooks
+│   ├── lib/                    # Utility functions
+│   └── pages/
+│       └── Index.tsx           # Main application page
+├── backend/
+│   ├── server.js               # Express server
+│   ├── package.json            # Backend dependencies
+│   └── README.md               # Backend documentation
+└── README.md                   # This file
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🛠️ Setup Instructions
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Frontend Setup
+1. Install dependencies:
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. Start development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+3. Open http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Backend Setup
+1. Navigate to backend directory:
+```bash
+cd backend
+```
 
-**Use GitHub Codespaces**
+2. Install dependencies:
+```bash
+npm install
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+3. Start backend server:
+```bash
+npm run dev
+```
 
-## What technologies are used for this project?
+4. Backend runs on http://localhost:3001
 
-This project is built with:
+## 🔧 Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### API Keys
+- The Google Gemini API key is included for demo purposes
+- For production, use environment variables
 
-## How can I deploy this project?
+### Supported Video Formats
+- **YouTube URLs**: Direct YouTube video links
+- **Uploaded Videos**: MP4, WebM, AVI, MOV formats
 
-Simply open [Lovable](https://lovable.dev/projects/522bad4f-2f58-462a-87e0-f9aa6a251a88) and click on Share -> Publish.
+## 🎯 Usage
 
-## Can I connect a custom domain to my Lovable project?
+### 1. Upload or Link Video
+- Paste a YouTube URL, or
+- Upload a video file from your device
 
-Yes, you can!
+### 2. Automatic Analysis
+- AI analyzes video content automatically
+- Generates summary and section breakdown
+- Extracts transcript (for YouTube videos)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 3. Interactive Features
+- **Chat**: Ask questions about the video
+- **Navigate**: Click timestamps to jump to sections  
+- **Search**: Find specific visual content
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### 4. Example Queries
+
+**Chat Examples:**
+- "What is this video about?"
+- "Who are the main speakers?"
+- "What topics are covered?"
+
+**Search Examples:**
+- "red car" - finds scenes with red cars
+- "person speaking" - finds speaking segments
+- "outdoor scene" - finds outdoor footage
+
+## 🌈 Design Features
+
+- **Dark theme** with purple/blue gradients
+- **Responsive design** for all screen sizes
+- **Smooth animations** and hover effects
+- **Modern glassmorphism** styling
+- **Professional typography** and spacing
+
+## 🔮 Future Enhancements
+
+- Multi-language transcript support
+- Advanced video filters and effects
+- Batch video processing
+- Real-time collaboration features
+- Enhanced visual recognition capabilities
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🤝 Contributing
+
+Contributions welcome! Please read contributing guidelines before submitting PRs.
+
+---
+
+Built with ❤️ using React, TypeScript, and Google Gemini AI
