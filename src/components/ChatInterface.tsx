@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,10 +37,25 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   useEffect(() => {
     if (analysisData) {
+      let initialMessageText = 'Video analysis completed successfully.';
+      if (analysisData.summary && typeof analysisData.summary === 'string') {
+        // If summary is a string, use it directly
+        initialMessageText = `I've analyzed your video! Here's what I found:\n\n${analysisData.summary}`;
+      } else if (analysisData.summary) {
+        // If summary exists but is not a string (e.g., the raw parsed object if parsing was partial),
+        // try to stringify it nicely or use a fallback.
+        try {
+           initialMessageText = `I've analyzed your video! Here's what I found:\n\n${JSON.stringify(analysisData.summary, null, 2)}`;
+        } catch (e) {
+           console.error("Could not stringify analysis summary:", e);
+           initialMessageText = `I've analyzed your video. Could not display summary.`;
+        }
+      }
+
       setMessages([
         {
           id: '1',
-          text: `I've analyzed your video! Here's what I found:\n\n${analysisData.summary || 'Video analysis completed successfully.'}`,
+          text: initialMessageText,
           isUser: false
         }
       ]);
@@ -107,9 +121,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <span>Chat with Video</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-4">
+      <CardContent className="flex-1 flex flex-col p-4 overflow-hidden">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+        <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
           {messages.length === 0 ? (
             <div className="text-center text-white/50 py-8">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-30" />
@@ -179,7 +193,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
 
         {/* Input */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 flex-shrink-0 mt-auto">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}

@@ -23,7 +23,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     return match ? match[1] : null;
   };
 
-  const getYouTubeTranscript = async (videoUrl: string): Promise<string> => {
+  const getYouTubeTranscript = async (videoUrl: string): Promise<{ transcript: string; segments: any[] }> => {
     const response = await fetch('/api/youtube-transcript', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,10 +34,11 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       throw new Error(data.error || 'Failed to fetch transcript');
     }
     const data = await response.json();
-    return data.transcript;
+    // Return both transcript text and segments
+    return { transcript: data.transcript, segments: data.segments };
   };
 
-  const analyzeWithGemini = async (transcript: string, videoUrl: string) => {
+  const analyzeWithGemini = async (transcript: string, videoUrl: string, segments: any[]) => {
     const prompt = `
       Analyze this video transcript and provide a JSON response with:
       1. A comprehensive summary
@@ -58,6 +59,9 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
 
       Video URL: ${videoUrl}
       Transcript: ${transcript}
+
+      // Use the provided transcript segments with timestamps to help accurately estimate section timestamps.
+      Transcript Segments: ${JSON.stringify(segments)}
     `;
     const response = await fetch('/api/analyze-video', {
       method: 'POST',
@@ -69,22 +73,29 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       throw new Error(data.error || 'Failed to analyze video');
     }
     const data = await response.json();
-    let parsed;
+    const analysisText = data.analysis; // Get the text containing the JSON structure
+    
+    let parsedData: { summary: string; sections: any[]; transcript?: string };
+
     try {
-      parsed = JSON.parse(data.analysis);
-    } catch {
-      parsed = {
-        summary: data.analysis || 'Video analysis completed',
-        sections: [
-          {
-            timestamp: 0,
-            title: 'Full Video',
-            description: 'Complete video content'
-          }
-        ]
+      // Attempt to parse the JSON string. Look for a JSON object within the text.
+      const jsonMatch = analysisText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : analysisText.trim();
+      
+      parsedData = JSON.parse(jsonString);
+      // Ensure sections is an array even if parsing succeeds but sections is missing/null
+      parsedData.sections = parsedData.sections || [];
+    } catch (e) {
+      console.error("Failed to parse analysis JSON:", e);
+      // Fallback if JSON parsing fails: use the raw text as a summary
+      parsedData = {
+        summary: analysisText || 'Video analysis completed',
+        sections: [], // Ensure sections is an empty array on parse failure
       };
     }
-    return { ...parsed, transcript };
+    
+    // Combine parsed data with the original transcript
+    return { ...parsedData, transcript };
   };
 
   const handleYouTubeUpload = async () => {
@@ -96,10 +107,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     setIsAnalyzing(true);
     try {
       onVideoSelected(youtubeUrl);
-      // Get transcript from backend
-      const transcript = await getYouTubeTranscript(youtubeUrl);
-      // Analyze transcript with backend
-      const analysisData = await analyzeWithGemini(transcript, youtubeUrl);
+      // Get transcript and segments from backend
+      const { transcript, segments } = await getYouTubeTranscript(youtubeUrl);
+      // Analyze transcript and segments with backend
+      const analysisData = await analyzeWithGemini(transcript, youtubeUrl, segments);
       onVideoAnalyzed(analysisData);
       toast.success('Video analysis completed!');
     } catch (error: any) {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,7 @@ export const VideoSections: React.FC<VideoSectionsProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
           {sections.map((section, index) => (
             <div 
               key={index}

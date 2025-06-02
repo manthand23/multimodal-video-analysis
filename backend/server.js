@@ -129,7 +129,7 @@ app.post('/api/youtube-transcript', async (req, res) => {
 app.post('/api/analyze-video', async (req, res) => {
   try {
     console.log('Analyzing video...');
-    const { transcript, prompt, videoData } = req.body;
+    const { transcript, prompt, videoData, segments } = req.body;
     
     if (!transcript && !videoData) {
       return res.status(400).json({ error: 'Either transcript or video data is required' });
@@ -155,6 +155,9 @@ app.post('/api/analyze-video', async (req, res) => {
         
         Video Transcript:
         ${transcript}
+        
+        // IMPORTANT: Use the provided \`segments\` array with timestamps to accurately generate the section timestamps.
+        Transcript Segments: ${JSON.stringify(segments, null, 2)}
       `;
       content = fullPrompt;
     }
@@ -220,8 +223,9 @@ app.post('/api/visual-search', async (req, res) => {
       
       Video Context: ${JSON.stringify(videoContext)}
       
-      Return results as JSON array with timestamp, description, and confidence score (0-1).
-      Format: [{"timestamp": 123, "description": "...", "confidence": 0.8}]
+      IMPORTANT: Return ONLY a JSON array of results. Do NOT include any extra text or formatting outside the JSON array.
+      The format should be an array of objects, each with 'timestamp' (number), 'description' (string), and 'confidence' (number 0-1).
+      Example: [{"timestamp": 123, "description": "...", "confidence": 0.8}]
     `;
     
     const result = await model.generateContent(prompt);
@@ -229,10 +233,16 @@ app.post('/api/visual-search', async (req, res) => {
     const text = response.text();
     
     try {
-      const searchResults = JSON.parse(text);
+      // Attempt to parse the JSON string. Look for a JSON array within the text.
+      // This helps handle cases where the model might wrap the JSON in markdown or include extra text.
+      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : text.trim();
+      
+      const searchResults = JSON.parse(jsonString);
       res.json({ results: Array.isArray(searchResults) ? searchResults : [] });
     } catch (parseError) {
-      console.log('Failed to parse search results as JSON, returning empty array');
+      console.log('Failed to parse search results as JSON, returning empty array', parseError);
+      console.log('Raw Gemini response:', text);
       res.json({ results: [] });
     }
   } catch (error) {
@@ -248,6 +258,6 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 VideoChat AI Backend Server running on port ${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`VideoChat AI Backend Server running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
 });

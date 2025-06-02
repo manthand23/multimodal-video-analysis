@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,7 +103,7 @@ export const VisualSearch: React.FC<VisualSearchProps> = ({
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
             <h4 className="text-white font-medium">Search Results:</h4>
             {searchResults.map((result, index) => (
               <div 
